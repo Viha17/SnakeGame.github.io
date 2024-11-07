@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    #gameCanvas {
+      border: 1px solid #000;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      background-color: #d1e5ff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Snake initialization
+    let snake = [{x: 10, y: 10}];
+    let dx = 0.5;
+    let dy = 0;
+    let foodX, foodY;
+    let score = 0;
+    let speed = 100;
+
+    // Food generation
+    function generateFood() {
+      foodX = Math.floor(Math.random() * (canvas.width / 10 - 1)) * 10;
+      foodY = Math.floor(Math.random() * (canvas.height / 10 - 1)) * 10;
+    }
+
+    // Draw the grid paths
+    function drawGridPaths() {
+      ctx.strokeStyle = '#c2daff';
+      ctx.lineWidth = 1;
+
+      // Draw vertical lines
+      for (let x = 0; x <= canvas.width; x += 10) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      // Draw horizontal lines
+      for (let y = 0; y <= canvas.height; y += 10) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    // Game loop
+    function gameLoop() {
+      // Move the snake
+      const head = { x: snake[0].x + dx * 10, y: snake[0].y + dy * 10 };
+      snake.unshift(head);
+      if (head.x === foodX && head.y === foodY) {
+        generateFood();
+        score++;
+        speed = Math.max(speed - 5, 50);
+      } else {
+        snake.pop();
+      }
+
+      // Check for collisions
+      if (
+        head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height ||
+        snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        alert(`Game Over! Your score is ${score}`);
+        snake = [{x: 10, y: 10}];
+        dx = 0.5;
+        dy = 0;
+        score = 0;
+        speed = 100;
+      }
+
+      // Draw the game
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGridPaths();
+
+      // Draw the snake
+      ctx.fillStyle = '#00ff00';
+      snake.forEach((segment, index) => {
+        ctx.fillRect(segment.x, segment.y, 10, 10);
+        if (index > 0) {
+          ctx.fillStyle = `rgb(0, ${(index * 20) % 255}, 0)`;
+        }
+      });
+
+      // Draw the food
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(foodX, foodY, 10, 10);
+
+      // Draw the score
+      ctx.font = '24px Arial';
+      ctx.fillStyle = '#000000';
+      ctx.fillText(`Score: ${score}`, 10, 30);
+
+      setTimeout(gameLoop, speed);
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (event) => {
+      switch (event.key) {
+        case 'ArrowLeft':
+          if (dx !== 0.5) {
+            dx = -0.5;
+            dy = 0;
+          }
+          break;
+        case 'ArrowRight':
+          if (dx !== -0.5) {
+            dx = 0.5;
+            dy = 0;
+          }
+          break;
+        case 'ArrowUp':
+          if (dy !== 0.5) {
+            dx = 0;
+            dy = -0.5;
+          }
+          break;
+        case 'ArrowDown':
+          if (dy !== -0.5) {
+            dx = 0;
+            dy = 0.5;
+          }
+          break;
+      }
+    });
+
+    generateFood();
+    drawGridPaths();
+    gameLoop();
+  </script>
+</body>
+</html>
